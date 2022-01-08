@@ -187,8 +187,13 @@ environment to run the script, you just bring up the container.
 
 To do this check out this repository, configure the MQTT broker host, username and password in the C<.env> file and run:
 
-C<dock compose up -d>.
+C<docker compose up -d>.
 
+=head1 Updating the README.md file
+
+The README.md file in this repo is generated from the POD content in the script. To update it, run
+
+C<pod2github bin/ev-dynacharge.pl E<gt> README.md>
 
 =head1 AUTHOR
 
