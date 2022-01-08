@@ -1,0 +1,13 @@
+version: "3.8"
+ 
+services:
+   ev-dynacharge:
+     build: 
+       context: .
+     restart: unless-stopped
+     environment:
+       - MQTT_SIMPLE_ALLOW_INSECURE_LOGIN=1
+     entrypoint: [ "./ev-dynacharge.pl",  "--host=${MQTT_HOST}",  "--user=${MQTT_USERNAME}",  "--pass=${MQTT_PASSWORD}" ]
+     security_opt:
+       - no-new-privileges:true
+

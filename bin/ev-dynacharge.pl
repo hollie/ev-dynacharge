@@ -13,8 +13,6 @@ use Getopt::Long 'HelpMessage';
 use Pod::Usage;
 use JSON;
 
-use Data::Dumper;
-
 my ($verbose, $mqtt_host, $mqtt_username, $mqtt_password);
 
 # Default values
@@ -180,6 +178,17 @@ charge current of the chargepoint where the vehicle is connected to.
 
 This is very much a work in progress, additional documentation and howto information will be added
 after the intial field testing is done.
+
+=head1 Using docker to run this script in a container
+
+This repository contains all required files to build a minimal Alpine linux container that runs the script.
+The advantage of using this method of running the script is that you don't need to setup the required Perl
+environment to run the script, you just bring up the container.
+
+To do this check out this repository, configure the MQTT broker host, username and password in the C<.env> file and run:
+
+C<dock compose up -d>.
+
 
 =head1 AUTHOR
 
