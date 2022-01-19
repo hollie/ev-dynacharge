@@ -90,6 +90,7 @@ while (1) {
 		update_loadcurrent($current);	
 		sleep(1);	
 	}
+	sleep(1);
 }
 
 sub mqtt_handler {
