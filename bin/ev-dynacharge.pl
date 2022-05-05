@@ -70,6 +70,7 @@ while (1) {
 		$boostmode_timer--;
 		update_loadcurrent($boostmode_current);	
 		INFO "++ Current boost charge mode active at $boostmode_current A - " . $boostmode_timer * 10 . " seconds remaining" ;
+                $mqtt->publish("chargepoint/status/boostmode_countdown_timer", $boostmode_timer *10);
 		sleep(10);
 	} elsif ($counter > 2) {
 		$counter = 0;
