@@ -10,4 +10,5 @@ services:
      entrypoint: [ "./ev-dynacharge.pl",  "--host=${MQTT_HOST}",  "--user=${MQTT_USERNAME}",  "--pass=${MQTT_PASSWORD}" ]
      security_opt:
        - no-new-privileges:true
+     init: true
 
