@@ -90,12 +90,12 @@ while (1) {
 			INFO "** Current is set to 0, not charging";
 		} else {
 			
-			if ($energy_balance > 4) {
+			if ($energy_balance > 4 && $nr_of_phases == 1 && $current > 15) {
 				# Switch to three-phase charging as there is room enough
 				INFO "Switching to three-phase charging based on $energy_balance W feed-in energy balance";
 				$nr_of_phases = 3;				
-			} elsif ($energy_balance < -1) {
-				INFO "Switching to three-phase charging based on $energy_balance W consumption energy balance";
+			} elsif ($energy_balance < -1 && $nr_of_phases == 3 && $current < 7) {
+				INFO "Switching to one-phase charging based on $energy_balance W consumption energy balance";
 				$nr_of_phases = 1;				
 			} 
 
