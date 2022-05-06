@@ -49,7 +49,11 @@ my $timers_topic = 'chargepoint/timer/#';
 #   for access to ..timer/boostmode
 #                 ..timer/haltmode
 my $mode = 'chargepoint/mode';
+my $nr_phases_topic = 'chargepoint/nr_of_phases';
 
+
+my $maxcurrent = 16;
+my $nr_of_phases = 3;
 
 $mqtt->subscribe('dsmr/reading/electricity_currently_delivered', \&mqtt_handler);
 $mqtt->subscribe('dsmr/reading/electricity_currently_returned',  \&mqtt_handler);
@@ -70,26 +74,51 @@ while (1) {
 		$boostmode_timer--;
 		update_loadcurrent($boostmode_current);	
 		INFO "++ Current boost charge mode active at $boostmode_current A - " . $boostmode_timer * 10 . " seconds remaining" ;
-                $mqtt->publish("chargepoint/status/boostmode_countdown_timer", $boostmode_timer *10);
-		sleep(10);
-	} elsif ($counter > 2) {
-		$counter = 0;
-		if ($energy_balance > 1.5) {
-			$current+=2;
-		} elsif ($energy_balance > 0.20) {
-			$current ++;
-		} elsif ($energy_balance < -1.5) {
-			$current-=2;
-		} elsif ($energy_balance < -0.22) {
-			$current --;
+		$mqtt->publish("chargepoint/status/boostmode_countdown_timer", $boostmode_timer *10);
+		my $loopcounter = 0;
+		while ($loopcounter < 10) {
+			sleep(1);
+			$mqtt->tick();
+			$loopcounter++;
 		}
-		$current = 16 if ($current > 16);
-		$current =  6 if ($current < 6);
+	} elsif ($counter > 2) {
 		
-		INFO "** Current is now $current based on balance $energy_balance W";
+		$counter = 0;
+					
+		if ($maxcurrent == 0) {
+			$current = 0;
+			INFO "** Current is set to 0, not charging";
+		} else {
+			
+			if ($energy_balance > 4) {
+				# Switch to three-phase charging as there is room enough
+				INFO "Switching to three-phase charging based on $energy_balance W feed-in energy balance";
+				$nr_of_phases = 3;				
+			} elsif ($energy_balance < -1) {
+				INFO "Switching to three-phase charging based on $energy_balance W consumption energy balance";
+				$nr_of_phases = 1;				
+			} 
 
+			if ($energy_balance > 1.5) {
+				$current+=2;
+			} elsif ($energy_balance > 0.20) {
+				$current ++;
+			} elsif ($energy_balance < -1.5) {
+				$current-=2;
+			} elsif ($energy_balance < -0.22) {
+				$current --;
+			}
+			
+			$current = $maxcurrent if ($current > $maxcurrent);
+			$current =  6 if ($current < 6);
+		
+			INFO "** Current is now $current based on balance $energy_balance W";
+	
+		}
+		
 		update_loadcurrent($current);	
-		sleep(1);	
+		$mqtt->publish($nr_phases_topic, $nr_of_phases);	
+		sleep(1);
 	}
 	sleep(1);
 }
@@ -109,6 +138,13 @@ sub mqtt_handler {
 	} elsif ($topic =~ /boostmode/) {
 		INFO "Setting boostmode timer to $data seconds";
 		$boostmode_timer = $data / 10;
+	} elsif ($topic =~ /maxcurrent/) {
+		if ($data > 0 && $data < 16) {
+			$maxcurrent = $data;
+			INFO "Maximum current is now $maxcurrent A";
+		} else {
+			WARN "Refuse to set invalid maximum current: '$data'";
+		}
 	} else {
 		WARN "Invalid message received from topic " . $topic;
 		return;
